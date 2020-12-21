@@ -41,7 +41,7 @@ INTERFACESv6=""
 
 
 subnet 10.10.0.0 netmask 255.255.255.0 {\
-	+ default-lease-time 600;\
+	> default-lease-time 600;\
 	+ max-lease-time 7200;\
 	+ range 10.10.0.50 10.10.0.200;\
 	+ option subnet-mask 255.255.255.0;\
