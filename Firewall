@@ -5,30 +5,39 @@ sudo iptables -P OUTPUT DROP
 sudo iptables -P FORWARD DROP
 
 ## Allow localhost
+iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
 
-sudo iptables -A INPUT -i lo -j ACCEPT
-sudo iptables -A OUTPUT -o lo -j ACCEPT
+## Allow DNS
+iptables -t filter -A OUTPUT -p tcp --dport 53 -j ACCEPT
+iptables -t filter -A OUTPUT -p udp --dport 53 -j ACCEPT
+iptables -t filter -A INPUT -p tcp --dport 53 -j ACCEPT
+iptables -t filter -A INPUT -p udp --dport 53 -j ACCEPT
 
-## Allow DHCP/DNS
+## ICMP
+iptables -t filter -A OUTPUT -p icmp -j ACCEPT
+iptables -t filter -A INPUT -p icmp -j ACCEPT
 
+## DHCP
 iptables  -I INPUT -i eth1 -p udp --dport 67:68 --sport 67:68 -j ACCEPT
 iptables  -I OUTPUT -i eth1 -p udp --dport 67:68 -j ACCEPT
 
-iptables -A INPUT -i eth1-p udp --dport 53 -j ACCEPT
-iptables -A OUTPUT -i eth1 -p udp --dport 53 -j ACCEPT
+## Connections Established
+iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
 
-## Allow Connection going out
-
-sudo iptables -A OUTPUT -o eth0 -p tcp --dport 80 --sport 1024:65535 -j ACCEPT
-sudo iptables -A OUTPUT -o eth0 -p tcp --dport 443 --sport 1024:65535 -j ACCEPT
-sudo iptables -A INPUT -i eth0 -m state -state RELATED,ESTABLISHED -j ACCEPT
-sudo iptables -A OUTPUT -o eth0 -m state -state RELATED,ESTABLISHED -j ACCEPT
+## Allow SSH/HTTP
+iptables -t filter -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -t filter -A OUTPUT -p tcp --dport 22 -j ACCEPT
+iptables -t filter -A OUTPUT -p tcp --dport 80 -j ACCEPT
+iptables -t filter -A INPUT -p tcp --dport 80 -j ACCEPT
 
 ## Allow access to a service
-
 sudo iptables -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 sudo iptables -A OUTPUT -p tcp --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT
 
-###From specific IP
+### From specific IP
 sudo iptables -A INPUT -p tcp -s 15.15.15.0/24 --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 sudo iptables -A OUTPUT -p tcp --sport 22 -m conntrack --ctstate ESTABLISHED -j ACCEPT
