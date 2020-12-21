@@ -9,6 +9,14 @@ sudo iptables -P FORWARD DROP
 sudo iptables -A INPUT -i lo -j ACCEPT
 sudo iptables -A OUTPUT -o lo -j ACCEPT
 
+## Allow DHCP/DNS
+
+iptables  -I INPUT -i eth1 -p udp --dport 67:68 --sport 67:68 -j ACCEPT
+iptables  -I OUTPUT -i eth1 -p udp --dport 67:68 -j ACCEPT
+
+iptables -A INPUT -i eth1-p udp --dport 53 -j ACCEPT
+iptables -A OUTPUT -i eth1 -p udp --dport 53 -j ACCEPT
+
 ## Allow Connection going out
 
 sudo iptables -A OUTPUT -o eth0 -p tcp --dport 80 --sport 1024:65535 -j ACCEPT
