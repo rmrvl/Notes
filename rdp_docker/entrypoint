@@ -1,0 +1,13 @@
+#!/bin/bash
+
+service ssh start
+rm /run/dbus/pid && dbus-daemon --system
+service rsyslog start
+/bin/sh /usr/share/xrdp/socksetup &
+/usr/lib/xorg/Xorg :10 -auth .Xauthority -config xrdp/xorg.conf -noreset -nolisten tcp -logfile .xorgxrdp.%s.log &
+
+xrdp-sesman -ns &
+xrdp -ns &
+
+#exec "$@"
+tail -f /dev/null
