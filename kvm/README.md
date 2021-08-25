@@ -66,3 +66,11 @@ ip tuntap add dev tap0 mode tap
 ip link set tap0 master docker0
 ip link set tap0 up
 ```
+
+Then you will need to setup manually the ip address of your VM inside the docker ip range.
+If `docker0` interface has the ip `10.0.0.1/24`
+
+```
+ip addr add 10.0.0.2 dev eth0
+ip route add default via 10.0.0.1
+```
