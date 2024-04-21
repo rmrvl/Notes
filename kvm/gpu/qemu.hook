@@ -1,0 +1,60 @@
+#!/bin/bash
+# copy into /etc/libvirt/hook/qemu with chmod 755
+set -x
+
+# Add in this list the vms that you want to be hooked
+HOOKED_VMS=("win10-gpu" "win10")
+
+GUEST_NAME="$1"
+HOOK_NAME="$2"
+STATE_NAME="$3"
+
+VIRSH_GPU_VIDEO=pci_0000_XX_XX_X
+VIRSH_GPU_AUDIO=pci_0000_XX_XX_X
+
+bind_vfio() {
+	systemct stop display-manager
+	modprobe -r amdgpu
+	echo 0 > /sys/class/vtconsole/vtcon0/bind
+	echo 0 > /sys/class/vtconsole/vtcon1/bind
+	echo "efi-framebuffer.0" > /sys/bus/platform/drivers/efi-framebuffer/unbind
+	sleep 2 # Avoid Race Condition can be optimized to be lower or longer
+	virsh net-start default
+	virsh nodedev-detach $VIRSH_GPU_VIDEO
+	virsh nodedev-detach $VIRSH_GPU_AUDIO
+	modprobe vfio
+	modprobe vfio_pci
+	modprobe vfio_iommu_type1
+}
+unbind_vfio() {
+	modprobe -r vfio_pci
+	modprobe -r vfio_iommu_type1
+	modprobe -r vfio
+	virsh nodedev-reattach $VIRSH_GPU_AUDIO
+	virsh nodedev-reattach $VIRSH_GPU_VIDEO
+	virsh net-destroy default
+	echo 1 > /sys/class/vtconsole/vtcon0/bind
+	echo 1 > /sys/class/vtconsole/vtcon1/bind
+	echo "efi-framebuffer.0" > /sys/bus/platform/drivers/efi-framebuffer/bind
+	modprobe amdgpu
+	modprobe gpu_sched
+	modprobe ttm
+	modprobe drm_kms_helper
+	modprobe i2c_algo_bit
+	modprobe drm
+	modprobe sbd_hda_intel
+	systemct start display-manager
+}
+
+for VM in ${HOOKED_VMS[@]}
+do
+	if [ $GUEST_NAME == $VM ] && [ $HOOK_NAME == 'prepare' ] && [ $STATE_NAME == 'begin' ]; then
+		bind_vfio
+		echo $(whoami) $(date) binding VFIO >> /tmp/qemulogs
+		break
+	elif [ $GUEST_NAME == $VM ] && [ $HOOK_NAME == 'release' ] && [ $STATE_NAME == 'end' ]; then
+		unbind_vfio
+		echo $(whoami) $(date) unbinding VFIO >> /tmp/qemulogs
+		break
+	fi
+done
