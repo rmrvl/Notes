@@ -74,3 +74,11 @@ If `docker0` interface has the ip `10.0.0.1/24`
 ip addr add 10.0.0.2 dev eth0
 ip route add default via 10.0.0.1
 ```
+
+## Using User-Mode Networking
+
+It is possible to use port forwarding to host a service on a VM using user-mode network interface
+
+```
+virsh qemu-monitor-command --hmp VM_NAME 'hostfwd_add ::HOST_PORT-:GUEST_PORT'
+```
