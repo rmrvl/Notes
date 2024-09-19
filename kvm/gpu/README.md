@@ -100,3 +100,18 @@ However, you can create one from scratch, as shown in [libvirt documentation](ht
 ### Change MAC Address
 
 Change the MAC Address of your virtual network interface to use a true one.
+
+### Use HyperV
+
+Add the following under `<features><hyperv>`:
+```
+<vpindex state="on"/>
+<runtime state="on"/>
+<synic state="on"/>
+<stimer state="on"/>
+<reset state="on"/>
+<frequencies state="on"/>
+```
+
+Then run the VM and activate hyperv by entering in the search bar __turn windows features on__ and then tick the **Hyper-V** box.
+Ensure both boxes under **Hyper-V** box are checked too : **Hyper-V Management Tools** and **Hyper-V Platform**
