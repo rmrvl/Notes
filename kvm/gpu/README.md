@@ -11,7 +11,7 @@ Install virt-manager and into edit/preferences allow the xml edit feature.
 
 `sudo apt-get install virt-manager`
 
-Create a new windows VM using virt-manager. This VM needs to run under system connection.
+[Create a new windows VM](https://www.youtube.com/watch?v=eTWf5D092VY) using virt-manager. This VM needs to run under system connection.
 Before running the install go to custom setup to check the different sections.
 
 ### Overview
@@ -93,7 +93,7 @@ Under `<cpu>` tag, add `<feature policy='disable' name='hypervisor'/>`
 
 ### Set the System Management BIOS
 
-Under `<cpu>` tag, add `<smbios mode='host'/>` to use the one of the host.
+Add `<smbios mode='host'/>` to use the one of the host.
 
 However, you can create one from scratch, as shown in [libvirt documentation](https://libvirt.org/formatdomain.html#smbios-system-information)
 
@@ -105,6 +105,9 @@ Change the MAC Address of your virtual network interface to use a true one.
 
 Add the following under `<features><hyperv>`:
 ```
+<relaxed state="on"/>
+<vapic state="on"/>
+<spinlocks state="on" retries="8191"/>
 <vpindex state="on"/>
 <runtime state="on"/>
 <synic state="on"/>
@@ -115,3 +118,15 @@ Add the following under `<features><hyperv>`:
 
 Then run the VM and activate hyperv by entering in the search bar __turn windows features on__ and then tick the **Hyper-V** box.
 Ensure both boxes under **Hyper-V** box are checked too : **Hyper-V Management Tools** and **Hyper-V Platform**
+
+## Performances
+
+To increase performances, you can add or remove several xml elements
+
+### Activate TOPOEXT cpu feature cpuid flag
+
+Activate the TOPOEXT cpuid flag adding `<feature policy="require" name="topoext"/>`  under `<cpu>` tag
+
+### Remove the hypervisor hidding
+
+It might make your VM detectable but could improve performances, remove `<feature policy='disable' name='hypervisor'/>` under `<cpu>` tag
